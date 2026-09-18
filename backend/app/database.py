@@ -13,12 +13,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 try:
-    from backend.app.models import EventCreate, EventRecord
+    from backend.app.models import EventCreate, EventRecord, ActivityCreate, ActivityRecord
 except ModuleNotFoundError:
     # Allow execution directly as script from any working directory
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from backend.app.models import EventCreate, EventRecord
+    from backend.app.models import EventCreate, EventRecord, ActivityCreate, ActivityRecord
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,26 @@ class EvidenceStore:
             )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_events_source ON events(source)"
+            )
+            
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS activities (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    rule_name TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    narrative TEXT NOT NULL,
+                    timestamp_start TEXT NOT NULL,
+                    timestamp_end TEXT NOT NULL,
+                    confidence_score REAL NOT NULL,
+                    confidence_level TEXT NOT NULL,
+                    evidence_event_ids TEXT NOT NULL,
+                    metadata TEXT NOT NULL
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_activities_timestamp_start ON activities(timestamp_start)"
             )
             conn.commit()
             logger.info("Initialized EvidenceStore database schema at: %s", self.db_path)
@@ -260,6 +280,139 @@ class EvidenceStore:
                 LIMIT ? OFFSET ?
                 """,
                 (limit, offset),
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
+
+        records = []
+        for r in rows:
+            try:
+                raw_dict = json.loads(r["raw_data"])
+            except Exception:
+                raw_dict = {}
+            records.append(
+                EventRecord(
+                    id=r["id"],
+                    source=r["source"],
+                    timestamp=datetime.fromisoformat(r["timestamp"]),
+                    entity=r["entity"],
+                    action=r["action"],
+                    raw_data=raw_dict,
+                    prev_hash=r["prev_hash"],
+                    record_hash=r["record_hash"],
+                )
+            )
+        return records
+
+
+    def insert_activity(self, activity: ActivityCreate) -> ActivityRecord:
+        """
+        Inserts a correlated activity record.
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO activities (
+                    rule_name, title, narrative, timestamp_start, timestamp_end,
+                    confidence_score, confidence_level, evidence_event_ids, metadata
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    activity.rule_name,
+                    activity.title,
+                    activity.narrative,
+                    activity.timestamp_start.isoformat(),
+                    activity.timestamp_end.isoformat(),
+                    activity.confidence_score,
+                    activity.confidence_level,
+                    json.dumps(activity.evidence_event_ids),
+                    json.dumps(activity.metadata),
+                )
+            )
+            conn.commit()
+            inserted_id = cursor.lastrowid
+        finally:
+            conn.close()
+
+        logger.debug(f"Stored correlated activity #{inserted_id}: {activity.title}")
+        
+        return ActivityRecord(
+            id=inserted_id,
+            rule_name=activity.rule_name,
+            title=activity.title,
+            narrative=activity.narrative,
+            timestamp_start=activity.timestamp_start,
+            timestamp_end=activity.timestamp_end,
+            confidence_score=activity.confidence_score,
+            confidence_level=activity.confidence_level,
+            evidence_event_ids=activity.evidence_event_ids,
+            metadata=activity.metadata
+        )
+
+    def get_activities(self, limit: int = 100, offset: int = 0) -> List[ActivityRecord]:
+        """Retrieves correlated activities."""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id, rule_name, title, narrative, timestamp_start, timestamp_end,
+                       confidence_score, confidence_level, evidence_event_ids, metadata
+                FROM activities
+                ORDER BY timestamp_start DESC
+                LIMIT ? OFFSET ?
+                """,
+                (limit, offset)
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
+
+        records = []
+        for r in rows:
+            records.append(ActivityRecord(
+                id=r["id"],
+                rule_name=r["rule_name"],
+                title=r["title"],
+                narrative=r["narrative"],
+                timestamp_start=datetime.fromisoformat(r["timestamp_start"]),
+                timestamp_end=datetime.fromisoformat(r["timestamp_end"]),
+                confidence_score=r["confidence_score"],
+                confidence_level=r["confidence_level"],
+                evidence_event_ids=json.loads(r["evidence_event_ids"]),
+                metadata=json.loads(r["metadata"])
+            ))
+        return records
+
+    def get_activity_evidence(self, activity_id: int) -> List[EventRecord]:
+        """Fetches raw evidence events associated with a given activity."""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT evidence_event_ids FROM activities WHERE id = ?", (activity_id,))
+            row = cursor.fetchone()
+            if not row:
+                return []
+            
+            event_ids = json.loads(row["evidence_event_ids"])
+            if not event_ids:
+                return []
+
+            placeholders = ",".join("?" for _ in event_ids)
+            cursor.execute(
+                f"""
+                SELECT id, source, timestamp, entity, action, raw_data, prev_hash, record_hash
+                FROM events
+                WHERE id IN ({placeholders})
+                ORDER BY timestamp ASC
+                """,
+                event_ids
             )
             rows = cursor.fetchall()
         finally:

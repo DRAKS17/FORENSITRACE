@@ -4,7 +4,7 @@ Defines normalized event schemas for incoming endpoint telemetry and stored reco
 """
 
 from datetime import datetime
-from typing import Any, Dict, Literal
+from typing import Any, Dict, List, Literal
 from pydantic import BaseModel, Field
 
 
@@ -58,3 +58,28 @@ class EventRecord(EventCreate):
         ...,
         description="SHA-256 hash computed over this record's payload and preceding hash.",
     )
+
+
+class ActivityCreate(BaseModel):
+    """
+    Schema representing a correlated forensic activity identified by the engine.
+    """
+    rule_name: str = Field(..., description="The name of the correlation rule that triggered.")
+    title: str = Field(..., description="Human-readable title of the activity.")
+    narrative: str = Field(..., description="Explainable reconstruction description.")
+    timestamp_start: datetime = Field(..., description="Start boundary of the correlated activity.")
+    timestamp_end: datetime = Field(..., description="End boundary of the correlated activity.")
+    confidence_score: float = Field(..., description="Confidence score from 0.0 to 1.0", ge=0.0, le=1.0)
+    confidence_level: Literal["LOW", "MEDIUM", "HIGH"] = Field(..., description="Categorical confidence level.")
+    evidence_event_ids: List[int] = Field(..., description="Provenance links to raw EventRecord IDs.")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Metadata such as timing breakdown and anomalies.")
+
+    class Config:
+        json_encoders = {datetime: lambda v: v.isoformat()}
+
+
+class ActivityRecord(ActivityCreate):
+    """
+    Schema representing a stored forensic activity.
+    """
+    id: int = Field(..., description="Unique database ID of the activity.")
