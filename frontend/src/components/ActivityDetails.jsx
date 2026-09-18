@@ -20,9 +20,29 @@ export default function ActivityDetails({ activity }) {
         return <div className="details-pane empty">Select an activity to view details</div>;
     }
 
+    const handleExport = () => {
+        window.open(`http://localhost:8000/api/v1/activities/${activity.id}/export`, '_blank');
+    };
+
     return (
         <div className="details-pane">
-            <h2>Activity Details</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2>Activity Details</h2>
+                <button 
+                    onClick={handleExport}
+                    style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: 'var(--accent-color)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    Export Forensic Report (PDF)
+                </button>
+            </div>
             <div className="narrative-box">
                 <p>{activity.narrative}</p>
             </div>

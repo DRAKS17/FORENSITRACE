@@ -1,8 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse
 from typing import List, Optional
+import os
 from backend.app.models import EventCreate, EventRecord, ActivityCreate, ActivityRecord
 from backend.app.database import EvidenceStore
 from backend.app.engine import CorrelationEngine
+from backend.app.report_generator import generate_activity_pdf
 import logging
 
 logger = logging.getLogger(__name__)
@@ -101,3 +104,32 @@ def get_metrics():
         logger.error(f"Failed to calculate metrics: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+@router.get("/api/v1/activities/{activity_id}/export")
+def export_activity_pdf(activity_id: int):
+    try:
+        # Fetch activity and evidence
+        activities = store.get_activities(limit=500)
+        activity = next((a for a in activities if a.id == activity_id), None)
+        if not activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
+            
+        evidence = store.get_activity_evidence(activity_id)
+        
+        # Generate PDF
+        reports_dir = os.path.join(os.getcwd(), "reports")
+        os.makedirs(reports_dir, exist_ok=True)
+        pdf_path = os.path.join(reports_dir, f"ForensiTrace_Report_{activity_id}.pdf")
+        
+        generate_activity_pdf(activity, evidence, pdf_path)
+        
+        return FileResponse(
+            path=pdf_path,
+            filename=f"ForensiTrace_Report_{activity_id}.pdf",
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="ForensiTrace_Report_{activity_id}.pdf"'}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate PDF export: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
