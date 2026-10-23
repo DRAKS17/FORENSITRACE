@@ -1,0 +1,51 @@
+{
+  "scenario_id": "SCENARIO_C_LOG_CLEARED",
+  "description": "Anti-forensics: Exploit staged, followed immediately by Security log clearing.",
+  "start_time": "2026-10-23T15:29:49.589835+00:00",
+  "expected_rules": [
+    "R5_LOG_CLEARED_COVERUP"
+  ],
+  "expected_confidence": "HIGH",
+  "events": [
+    {
+      "order": 1,
+      "event_id": 4,
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "target": "C:\\Windows\\Temp\\privesc_exploit.exe"
+    },
+    {
+      "order": 2,
+      "event_id": 5,
+      "source": "eventlog",
+      "action": "LOG_CLEARED",
+      "target": "LogCleared:Security"
+    }
+  ],
+  "reconstructed_activities": [
+    {
+      "id": 4,
+      "rule": "R7_USB_STAGING_EXECUTION",
+      "confidence": "HIGH",
+      "score": 0.9
+    },
+    {
+      "id": 5,
+      "rule": "R1_DEVICE_FILE_STAGING",
+      "confidence": "MEDIUM",
+      "score": 0.7
+    },
+    {
+      "id": 6,
+      "rule": "R2_FILE_CREATION_EXECUTION",
+      "confidence": "HIGH",
+      "score": 0.75
+    },
+    {
+      "id": 7,
+      "rule": "R5_LOG_CLEARED_COVERUP",
+      "confidence": "HIGH",
+      "score": 0.9
+    }
+  ]
+}

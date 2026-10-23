@@ -27,55 +27,56 @@ export default function TimelineView({ onSelectActivity }) {
     });
 
     if (loading && !timelineItems.length) {
-        return <div className="timeline-loading">Loading forensic timeline stream...</div>;
+        return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>Loading chronological telemetry stream...</div>;
     }
 
     if (error) {
-        return <div className="error-box">Timeline Error: {error}</div>;
+        return <div style={{ padding: '2rem', color: 'var(--negative)' }}>Timeline Error: {error}</div>;
     }
 
     return (
-        <div className="timeline-container">
-            <div className="timeline-toolbar">
-                <div className="timeline-title-row">
+        <div className="timeline-pane">
+            <div className="timeline-nav-row">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <h3>Chronological Forensic Axis</h3>
-                    <span className="count-pill">{filtered.length} Timeline Points</span>
+                    <span className="count-tag">({filtered.length} entries)</span>
                 </div>
-                <div className="timeline-filters">
+                <div className="filter-segments">
                     <button 
-                        className={`btn-filter ${filterType === 'all' ? 'active' : ''}`}
+                        className={`seg-btn ${filterType === 'all' ? 'active' : ''}`}
                         onClick={() => setFilterType('all')}
                     >
-                        All Telemetry
+                        All
                     </button>
                     <button 
-                        className={`btn-filter ${filterType === 'activities' ? 'active' : ''}`}
+                        className={`seg-btn ${filterType === 'activities' ? 'active' : ''}`}
                         onClick={() => setFilterType('activities')}
                     >
-                        Reconstructed Activities
+                        Activities Only
                     </button>
                     <button 
-                        className={`btn-filter ${filterType === 'events' ? 'active' : ''}`}
+                        className={`seg-btn ${filterType === 'events' ? 'active' : ''}`}
                         onClick={() => setFilterType('events')}
                     >
-                        Raw Events
+                        Raw Events Only
                     </button>
                 </div>
             </div>
 
             {filtered.length === 0 ? (
-                <p className="empty-timeline">No chronological entries captured yet.</p>
+                <p style={{ textAlign: 'center', color: 'var(--muted)', padding: '3rem' }}>No entries found for the selected filter.</p>
             ) : (
-                <div className="timeline-stream">
+                <div className="timeline-feed">
                     {filtered.map(item => {
                         const isAct = item.item_type === 'activity';
                         const timeStr = new Date(item.timestamp).toLocaleTimeString();
                         const dateStr = new Date(item.timestamp).toLocaleDateString();
+                        const confClass = item.confidence_level?.toLowerCase() || '';
 
                         return (
                             <div 
                                 key={item.id}
-                                className={`timeline-card ${isAct ? 'timeline-act' : 'timeline-ev'} ${isAct ? `conf-${item.confidence_level?.toLowerCase()}` : ''}`}
+                                className={`timeline-entry ${isAct ? `entry-act ${confClass}` : ''}`}
                                 onClick={() => {
                                     if (isAct && onSelectActivity) {
                                         onSelectActivity({
@@ -91,26 +92,24 @@ export default function TimelineView({ onSelectActivity }) {
                                     }
                                 }}
                             >
-                                <div className="timeline-marker"></div>
-                                <div className="timeline-content">
-                                    <div className="timeline-time-col">
-                                        <span className="time-val">{timeStr}</span>
-                                        <span className="date-val">{dateStr}</span>
-                                    </div>
-                                    <div className="timeline-info-col">
-                                        <div className="timeline-header-line">
-                                            <span className={`pill-type ${isAct ? 'pill-act' : 'pill-ev'}`}>
-                                                {isAct ? 'ACTIVITY' : item.source?.toUpperCase()}
+                                <div className="entry-time-col">
+                                    <span className="time-clock">{timeStr}</span>
+                                    <span className="time-day">{dateStr}</span>
+                                </div>
+
+                                <div className="entry-body">
+                                    <div className="entry-lead">
+                                        <span className={`entry-source-pill ${isAct ? 'act' : item.source}`}>
+                                            {isAct ? 'CORRELATED ACTIVITY' : item.source?.toUpperCase()}
+                                        </span>
+                                        {isAct && item.confidence_level && (
+                                            <span className={`conf-pill ${confClass}`}>
+                                                {item.confidence_level}
                                             </span>
-                                            {isAct && item.confidence_level && (
-                                                <span className={`pill-conf conf-${item.confidence_level.toLowerCase()}`}>
-                                                    {item.confidence_level}
-                                                </span>
-                                            )}
-                                            <strong className="timeline-item-title">{item.title}</strong>
-                                        </div>
-                                        <p className="timeline-item-desc">{item.description}</p>
+                                        )}
+                                        <strong className="entry-title-text">{item.title}</strong>
                                     </div>
+                                    <p className="entry-desc-text">{item.description}</p>
                                 </div>
                             </div>
                         );

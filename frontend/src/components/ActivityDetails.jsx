@@ -13,20 +13,17 @@ export default function ActivityDetails({ activity, onClose }) {
         setLoading(true);
         setError(null);
         getActivityDetail(activity.id)
-            .then(data => {
-                setDetail(data);
-            })
+            .then(data => setDetail(data))
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, [activity]);
 
     if (!activity) {
         return (
-            <div className="details-pane empty">
-                <div className="empty-state">
-                    <span className="empty-icon">&#128269;</span>
-                    <h3>Select an Activity</h3>
-                    <p>Click on any correlated forensic activity from the list or timeline to inspect its evidence provenance and export formal reports.</p>
+            <div className="detail-empty">
+                <div className="empty-prompt">
+                    <h3>No Activity Selected</h3>
+                    <p>Select any correlated event sequence to inspect its evidence chain and export formal reports.</p>
                 </div>
             </div>
         );
@@ -48,110 +45,123 @@ export default function ActivityDetails({ activity, onClose }) {
 
     const getConfidenceClass = (level) => {
         switch (level?.toUpperCase()) {
-            case 'HIGH': return 'badge-high';
-            case 'MEDIUM': return 'badge-medium';
-            default: return 'badge-low';
+            case 'HIGH': return 'high';
+            case 'MEDIUM': return 'medium';
+            default: return 'low';
         }
     };
 
-    const getSourceClass = (src) => {
+    const getSourceTag = (src) => {
         const s = src?.toLowerCase();
-        if (s === 'usb') return 'source-usb';
-        if (s === 'fs') return 'source-fs';
-        if (s === 'eventlog') return 'source-eventlog';
-        return 'source-default';
+        if (s === 'usb') return 'usb';
+        if (s === 'fs') return 'fs';
+        if (s === 'eventlog') return 'eventlog';
+        return 'default';
     };
 
     return (
-        <div className="details-pane">
-            <div className="details-header">
-                <div className="details-header-title">
-                    <div className="tag-row">
-                        <span className={`badge ${getConfidenceClass(act.confidence_level)}`}>
-                            {act.confidence_level} CONFIDENCE ({act.confidence_score.toFixed(2)})
+        <div className="detail-view">
+            {/* Header & Export Action */}
+            <div className="detail-head">
+                <div className="detail-title-col">
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <span className={`conf-pill ${getConfidenceClass(act.confidence_level)}`}>
+                            {act.confidence_level} ({act.confidence_score.toFixed(2)})
                         </span>
-                        <span className="rule-tag">RULE: {act.rule_name}</span>
+                        <span className="row-rule">RULE: {act.rule_name}</span>
                     </div>
                     <h2>{act.title}</h2>
-                    <div className="meta-time">
-                        <span>Observed: {new Date(act.timestamp_start).toLocaleString()} &rarr; {new Date(act.timestamp_end).toLocaleString()}</span>
+                    <div className="detail-meta-row">
+                        <span>Timeframe: {new Date(act.timestamp_start).toISOString()} &rarr; {new Date(act.timestamp_end).toISOString()}</span>
                     </div>
                 </div>
 
-                <div className="details-actions">
-                    <button className="btn btn-export" onClick={handleExport} title="Download formal PDF with cryptographic assurance">
-                        &#128196; Export PDF Report
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <button className="btn-export-pdf" onClick={handleExport} title="Download forensic PDF report">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
+                        </svg>
+                        Export Report (PDF)
                     </button>
                     {onClose && (
-                        <button className="btn btn-close" onClick={onClose} title="Close drawer">
+                        <button 
+                            onClick={onClose}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '18px' }}
+                            title="Close pane"
+                        >
                             &times;
                         </button>
                     )}
                 </div>
             </div>
 
-            <div className="narrative-box">
-                <div className="narrative-label">&#128220; Reconstructed Threat Narrative</div>
-                <p className="narrative-text">{act.narrative}</p>
+            {/* Narrative Explanation */}
+            <div className="narrative-card">
+                <div className="narrative-head">Forensic Threat Narrative</div>
+                <p className="narrative-body">{act.narrative}</p>
             </div>
 
-            <div className="evidence-section">
-                <div className="section-title-bar">
-                    <h3>Evidence Provenance &amp; Cross-Source Chain</h3>
-                    <span className="count-pill">{evidenceItems.length} Verified Artifacts</span>
+            {/* Provenance Chain */}
+            <div className="provenance-section">
+                <div className="provenance-header-row">
+                    <h3>Cross-Source Evidence Chain</h3>
+                    <span className="count-tag">{evidenceItems.length} Linked Artifacts</span>
                 </div>
 
                 {loading ? (
-                    <div className="loading-evidence">Auditing evidence chain...</div>
+                    <div style={{ padding: '1rem', color: 'var(--muted)' }}>Auditing evidence links...</div>
                 ) : error ? (
-                    <div className="error-box">Error loading provenance: {error}</div>
+                    <div style={{ color: 'var(--negative)', padding: '1rem' }}>Failed to retrieve provenance: {error}</div>
                 ) : evidenceItems.length === 0 ? (
-                    <p className="empty-evidence">No linked evidence events found.</p>
+                    <p style={{ color: 'var(--muted)' }}>No underlying evidence links captured.</p>
                 ) : (
-                    <div className="evidence-timeline">
+                    <div className="stepped-chain">
                         {evidenceItems.map((item, index) => {
                             const ev = item.event;
                             const isExpanded = !!expandedRaw[ev.id];
                             return (
-                                <div key={ev.id} className="evidence-item">
-                                    <div className="evidence-step-indicator">
-                                        <div className="step-number">{index + 1}</div>
-                                        {index < evidenceItems.length - 1 && <div className="step-line"></div>}
+                                <div key={ev.id} className="step-row">
+                                    <div className="step-spine">
+                                        <div className="step-node">{index + 1}</div>
+                                        {index < evidenceItems.length - 1 && <div className="step-connector"></div>}
                                     </div>
 
-                                    <div className="evidence-body">
-                                        <div className="evidence-top-row">
-                                            <span className={`source-badge ${getSourceClass(ev.source)}`}>
+                                    <div className="step-card">
+                                        <div className="step-top">
+                                            <span className={`source-tag ${getSourceTag(ev.source)}`}>
                                                 {ev.source.toUpperCase()}
                                             </span>
-                                            <span className="action-tag">{ev.action}</span>
-                                            <span className="time-tag">{new Date(ev.timestamp).toLocaleTimeString()} ({new Date(ev.timestamp).toISOString()})</span>
-                                            <span className="ev-id-badge">ID #{ev.id}</span>
+                                            <span className="action-label">{ev.action}</span>
+                                            <span className="step-time">
+                                                {new Date(ev.timestamp).toLocaleTimeString()} ({new Date(ev.timestamp).toISOString()})
+                                            </span>
                                         </div>
 
-                                        <div className="entity-box">
-                                            <strong>Target:</strong> <code>{ev.entity}</code>
+                                        <div className="step-target">
+                                            <code>{ev.entity}</code>
                                         </div>
 
-                                        <div className="reason-box">
-                                            <span className="reason-label">&#9888; Provenance Reason:</span>
-                                            <span className="reason-text">{item.reason}</span>
+                                        <div className="reason-callout">
+                                            <strong>Provenance Link:</strong> {item.reason}
                                         </div>
 
-                                        <div className="raw-toggle-row">
+                                        <div className="raw-toggle-bar">
                                             <button 
-                                                className="btn-toggle-raw"
+                                                className="btn-raw"
                                                 onClick={() => toggleRaw(ev.id)}
                                             >
-                                                {isExpanded ? 'Hide Raw Telemetry &and;' : 'View Raw Telemetry &or;'}
+                                                {isExpanded ? 'Hide Raw Telemetry' : 'Show Raw Telemetry'}
                                             </button>
-                                            <span className="hash-preview" title={ev.record_hash}>
+                                            <span className="hash-digest" title={ev.record_hash}>
                                                 SHA-256: {ev.record_hash.substring(0, 16)}...
                                             </span>
                                         </div>
 
                                         {isExpanded && (
-                                            <pre className="raw-data-block">
+                                            <pre className="raw-json-viewer">
                                                 {JSON.stringify(ev.raw_data || ev.details, null, 2)}
                                             </pre>
                                         )}

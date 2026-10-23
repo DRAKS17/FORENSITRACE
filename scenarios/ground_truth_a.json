@@ -1,0 +1,57 @@
+{
+  "scenario_id": "SCENARIO_A",
+  "description": "Attacker inserts USB flash drive, stages backdoor_payload.exe, and executes it.",
+  "start_time": "2026-10-23T15:29:28.918993+00:00",
+  "expected_rules": [
+    "R7_USB_STAGING_EXECUTION",
+    "R1_DEVICE_FILE_STAGING",
+    "R2_FILE_CREATION_EXECUTION"
+  ],
+  "expected_confidence": "HIGH",
+  "events": [
+    {
+      "order": 1,
+      "event_id": 1,
+      "source": "usb",
+      "action": "DEVICE_ARRIVED",
+      "target": "E: (Kingston DataTraveler)",
+      "timestamp": "2026-10-23T15:29:29.918993+00:00"
+    },
+    {
+      "order": 2,
+      "event_id": 2,
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "target": "E:\\backdoor_payload.exe",
+      "timestamp": "2026-10-23T15:29:31.918993+00:00"
+    },
+    {
+      "order": 3,
+      "event_id": 3,
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "target": "E:\\backdoor_payload.exe",
+      "timestamp": "2026-10-23T15:29:33.918993+00:00"
+    }
+  ],
+  "reconstructed_activities": [
+    {
+      "id": 1,
+      "rule": "R7_USB_STAGING_EXECUTION",
+      "confidence": "HIGH",
+      "score": 0.9
+    },
+    {
+      "id": 2,
+      "rule": "R1_DEVICE_FILE_STAGING",
+      "confidence": "MEDIUM",
+      "score": 0.7
+    },
+    {
+      "id": 3,
+      "rule": "R2_FILE_CREATION_EXECUTION",
+      "confidence": "HIGH",
+      "score": 0.75
+    }
+  ]
+}

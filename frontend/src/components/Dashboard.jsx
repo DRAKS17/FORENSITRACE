@@ -25,7 +25,6 @@ export default function Dashboard() {
             setActivities(acts);
             setMetrics(mets);
             setIntegrity(int);
-            // If currently selected activity exists, update its reference if it changed
             if (selectedActivity) {
                 const updated = acts.find(a => a.id === selectedActivity.id);
                 if (updated) setSelectedActivity(updated);
@@ -74,97 +73,107 @@ export default function Dashboard() {
 
     const getConfidenceClass = (level) => {
         switch (level?.toUpperCase()) {
-            case 'HIGH': return 'badge-high';
-            case 'MEDIUM': return 'badge-medium';
-            default: return 'badge-low';
+            case 'HIGH': return 'high';
+            case 'MEDIUM': return 'medium';
+            default: return 'low';
         }
     };
 
     return (
         <div className="dashboard-root">
-            {/* Top Navigation & Status Bar */}
+            {/* Top Shell: Brand & Telemetry Header */}
             <header className="dashboard-header">
                 <div className="brand-section">
-                    <div className="logo-shield">&#128737;</div>
-                    <div>
-                        <h1>ForensiTrace <span className="version-pill">v2.0 Phase 3</span></h1>
-                        <p className="subtitle">Lightweight Cross-Source Correlation Engine for Windows Endpoint Forensics</p>
+                    <div className="brand-symbol" title="ForensiTrace Core">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                    </div>
+                    <div className="brand-text">
+                        <h1>ForensiTrace <span className="version-tag">PROTOTYPE</span></h1>
+                        <p>Cross-Source Correlation Engine for Windows Endpoint Forensics</p>
                     </div>
                 </div>
 
                 <div className="system-telemetry-strip">
-                    {/* Metrics: CPU */}
-                    <div className="metric-card">
+                    {/* Agent CPU Metric */}
+                    <div className="metric-cell">
                         <span className="metric-label">Agent CPU</span>
-                        <div className="metric-val-row">
-                            <span className="metric-number">{metrics?.avg_cpu_percent ?? '0.0'}%</span>
-                            <span className="metric-sub">avg</span>
+                        <div className="metric-value-row">
+                            <span className="metric-num">{metrics?.avg_cpu_percent !== undefined ? metrics.avg_cpu_percent.toFixed(2) : '0.00'}</span>
+                            <span className="metric-unit">%</span>
                         </div>
                     </div>
 
-                    {/* Metrics: RAM */}
-                    <div className="metric-card">
+                    {/* Agent RAM Metric */}
+                    <div className="metric-cell">
                         <span className="metric-label">Agent RAM</span>
-                        <div className="metric-val-row">
-                            <span className="metric-number">{metrics?.avg_memory_mb ?? '0.0'}</span>
-                            <span className="metric-sub">MB</span>
+                        <div className="metric-value-row">
+                            <span className="metric-num">{metrics?.avg_memory_mb !== undefined ? metrics.avg_memory_mb.toFixed(1) : '0.0'}</span>
+                            <span className="metric-unit">MB</span>
                         </div>
                     </div>
 
                     {/* Cryptographic Hash Chain Status */}
-                    <div className={`metric-card integrity-card ${integrity?.intact ? 'verified' : 'tampered'}`}>
+                    <div className="metric-cell">
                         <span className="metric-label">Hash Chain</span>
-                        <div className="metric-val-row">
-                            <span className="integrity-indicator">
-                                {integrity?.intact ? '&#10004; VERIFIED' : '&#9888; TAMPERED'}
+                        <div className="metric-value-row">
+                            <span className={`chain-badge ${integrity?.intact ? 'verified' : 'tampered'}`}>
+                                <span className="status-dot"></span>
+                                {integrity?.intact ? 'VERIFIED' : 'TAMPERED'}
                             </span>
-                            <span className="metric-sub">{integrity?.total_records ?? 0} recs</span>
+                            <span className="metric-unit">({integrity?.total_records ?? 0} recs)</span>
                         </div>
                     </div>
 
                     {/* Manual Correlation Trigger */}
                     <button 
-                        className={`btn btn-correlate ${correlating ? 'spinning' : ''}`}
+                        className="btn-run-correlate"
                         onClick={handleRunCorrelation}
                         disabled={correlating}
                         title="Analyze recent event stream with rule engine"
                     >
-                        {correlating ? 'Correlating...' : '&#9881; Run Correlation'}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        {correlating ? 'Analyzing...' : 'Run Correlation'}
                     </button>
                 </div>
             </header>
 
-            {/* Navigation Tabs */}
+            {/* Sub-Header: Underline Navigation & Filters */}
             <div className="tab-control-bar">
-                <div className="tab-buttons">
+                <nav className="tab-nav">
                     <button 
-                        className={`tab-btn ${activeTab === 'activities' ? 'active' : ''}`}
+                        className={`tab-item ${activeTab === 'activities' ? 'active' : ''}`}
                         onClick={() => setActiveTab('activities')}
                     >
-                        &#128065; Reconstructed Activities ({activities.length})
+                        Reconstructed Activities <span className="tab-count">({activities.length})</span>
                     </button>
                     <button 
-                        className={`tab-btn ${activeTab === 'timeline' ? 'active' : ''}`}
+                        className={`tab-item ${activeTab === 'timeline' ? 'active' : ''}`}
                         onClick={() => setActiveTab('timeline')}
                     >
-                        &#128197; Forensic Timeline Stream
+                        Forensic Timeline Stream
                     </button>
-                </div>
+                </nav>
 
                 {activeTab === 'activities' && (
-                    <div className="filter-controls">
+                    <div className="filter-toolbar">
                         <input 
                             type="text" 
-                            className="search-input"
+                            className="search-field"
                             placeholder="Filter activities, paths, rules, IDs..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <div className="confidence-toggles">
+                        <div className="confidence-selector">
                             {['ALL', 'HIGH', 'MEDIUM', 'LOW'].map(lvl => (
                                 <button
                                     key={lvl}
-                                    className={`btn-toggle-lvl ${confidenceFilter === lvl ? 'active' : ''} ${lvl.toLowerCase()}`}
+                                    className={`conf-opt ${confidenceFilter === lvl ? 'active' : ''}`}
                                     onClick={() => setConfidenceFilter(lvl)}
                                 >
                                     {lvl}
@@ -175,73 +184,67 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* Main Workbench Split View */}
+            {/* Main Workbench */}
             <main className="workbench">
                 {activeTab === 'activities' ? (
                     <div className="workbench-split">
-                        {/* Activities List Left Pane */}
-                        <div className="activities-master-pane">
-                            <div className="pane-header-info">
-                                <span>Showing {filteredActivities.length} of {activities.length} activities</span>
+                        {/* Activities Master List */}
+                        <aside className="activity-master">
+                            <div className="master-header">
+                                <span>Correlated Threat Sequence</span>
+                                <span>{filteredActivities.length} items</span>
                             </div>
 
                             {loading && !activities.length ? (
-                                <div className="loading-state">Initializing ForensiTrace telemetry pipeline...</div>
+                                <div className="master-header">Loading telemetry stream...</div>
                             ) : filteredActivities.length === 0 ? (
-                                <div className="empty-state">
-                                    <p>No activities match the current filter criteria.</p>
-                                    <button className="btn btn-secondary" onClick={() => { setConfidenceFilter('ALL'); setSearchQuery(''); }}>
-                                        Clear Filters
-                                    </button>
+                                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--muted)' }}>
+                                    <p>No activities match current filters.</p>
                                 </div>
                             ) : (
-                                <div className="activity-cards-list">
+                                <div className="activity-feed">
                                     {filteredActivities.map(act => {
                                         const isSelected = selectedActivity?.id === act.id;
                                         return (
                                             <div
                                                 key={act.id}
-                                                className={`activity-card ${isSelected ? 'selected' : ''}`}
+                                                className={`activity-row ${isSelected ? 'selected' : ''}`}
                                                 onClick={() => setSelectedActivity(act)}
                                             >
-                                                <div className="card-top">
-                                                    <span className={`badge ${getConfidenceClass(act.confidence_level)}`}>
+                                                <div className="row-top">
+                                                    <span className={`conf-pill ${getConfidenceClass(act.confidence_level)}`}>
                                                         {act.confidence_level} ({act.confidence_score.toFixed(2)})
                                                     </span>
-                                                    <span className="card-rule">{act.rule_name}</span>
+                                                    <span className="row-rule">{act.rule_name}</span>
                                                 </div>
 
-                                                <h4 className="card-title">{act.title}</h4>
-                                                <p className="card-narrative-preview">{act.narrative}</p>
+                                                <h4 className="row-title">{act.title}</h4>
+                                                <p className="row-snippet">{act.narrative}</p>
 
-                                                <div className="card-footer">
-                                                    <span className="card-time">{new Date(act.timestamp_start).toLocaleTimeString()}</span>
-                                                    <span className="evidence-count-badge">
-                                                        {act.evidence_event_ids?.length || 0} evidence links
-                                                    </span>
+                                                <div className="row-footer">
+                                                    <span>{new Date(act.timestamp_start).toLocaleTimeString()}</span>
+                                                    <span>{act.evidence_event_ids?.length || 0} evidence links</span>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
                             )}
-                        </div>
+                        </aside>
 
-                        {/* Evidence Provenance Right Drawer / Details Pane */}
-                        <div className="evidence-detail-pane">
+                        {/* Evidence Provenance Detail Drawer */}
+                        <section className="evidence-detail">
                             <ActivityDetails 
                                 activity={selectedActivity} 
                                 onClose={() => setSelectedActivity(null)}
                             />
-                        </div>
+                        </section>
                     </div>
                 ) : (
-                    <div className="timeline-wrapper">
-                        <TimelineView onSelectActivity={(act) => {
-                            setSelectedActivity(act);
-                            setActiveTab('activities');
-                        }} />
-                    </div>
+                    <TimelineView onSelectActivity={(act) => {
+                        setSelectedActivity(act);
+                        setActiveTab('activities');
+                    }} />
                 )}
             </main>
         </div>

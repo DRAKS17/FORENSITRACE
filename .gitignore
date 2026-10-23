@@ -89,3 +89,5 @@ yarn-error.log*
 .eslintcache
 .next/
 out/
+
+.taste-skill/
