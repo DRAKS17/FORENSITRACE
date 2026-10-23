@@ -1,222 +1,224 @@
 """
-ForensiTrace - File System Collector
-Monitors endpoint file system events (created, modified, deleted) using watchdog
-and normalizes them into the ForensiTrace preliminary forensic event schema.
+ForensiTrace - File System Telemetry Collector (CHETNA)
+Monitors endpoint file operations (create, modify, delete, move) using watchdog.
+Filters temporary noise, debounces rapid duplicate events, and supports dynamic
+addition/removal of watched paths (e.g. dynamically watching removable USB drives).
 """
 
+from datetime import datetime, timezone
 import json
 import logging
 import os
-import sys
-import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+import threading
+import time
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("agent.fs")
+
+DEFAULT_IGNORE_EXTENSIONS = {".tmp", ".crdownload", ".part", ".log", ".swp", ".lock"}
+DEFAULT_IGNORE_PREFIXES = {"~$", "Thumbs.db", "desktop.ini"}
 
 
-class _ForensicFileSystemEventHandler(FileSystemEventHandler):
-    """Internal Watchdog event handler that translates raw FS events into the ForensiTrace schema."""
-
-    def __init__(self, callback: Callable[[Dict[str, Any]], None]) -> None:
-        super().__init__()
-        self._callback = callback
-
-    def _normalize_and_emit(self, action: str, event: FileSystemEvent) -> None:
-        """Normalizes a watchdog file system event into ForensiTrace schema."""
-        try:
-            resolved_path = str(Path(event.src_path).resolve())
-            is_dir = event.is_directory
-
-            # Gather auxiliary file metadata if available
-            size_bytes: Optional[int] = None
-            if not is_dir and action != "deleted":
-                try:
-                    if os.path.exists(resolved_path):
-                        size_bytes = os.path.getsize(resolved_path)
-                except OSError:
-                    size_bytes = None
-
-            raw_data: Dict[str, Any] = {
-                "event_type": event.event_type,
-                "is_directory": is_dir,
-                "src_path": resolved_path,
-                "file_extension": Path(resolved_path).suffix if not is_dir else "",
-            }
-            if size_bytes is not None:
-                raw_data["size_bytes"] = size_bytes
-
-            normalized_event: Dict[str, Any] = {
-                "source": "file_system",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "entity": resolved_path,
-                "action": action,
-                "raw_data": raw_data,
-            }
-
-            self._callback(normalized_event)
-        except Exception as exc:
-            logger.error(
-                "Error processing file system event for %s: %s",
-                event.src_path,
-                exc,
-                exc_info=True,
-            )
-
-    def on_created(self, event: FileSystemEvent) -> None:
-        """Invoked when a file or directory is created."""
-        self._normalize_and_emit(action="created", event=event)
-
-    def on_modified(self, event: FileSystemEvent) -> None:
-        """Invoked when a file or directory is modified."""
-        self._normalize_and_emit(action="modified", event=event)
-
-    def on_deleted(self, event: FileSystemEvent) -> None:
-        """Invoked when a file or directory is deleted."""
-        self._normalize_and_emit(action="deleted", event=event)
-
-
-class FileSystemCollector:
+class _ForensicEventHandler(FileSystemEventHandler):
     """
-    Asynchronous File System telemetry collector.
-    Monitors a target directory using a background Watchdog Observer thread
-    and dispatches normalized events to a registered callback.
+    Translates raw Watchdog events into normalized ForensiTrace schema.
+    Includes debouncing and noise filtering.
     """
 
     def __init__(
         self,
-        target_path: str | Path,
-        recursive: bool = True,
-        event_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        callback: Callable[[Dict[str, Any]], None],
+        ignore_exts: Set[str],
+        ignore_prefixes: Set[str],
+        debounce_seconds: float = 0.5,
     ) -> None:
-        """
-        Initialize the FileSystemCollector.
+        super().__init__()
+        self._callback = callback
+        self._ignore_exts = ignore_exts
+        self._ignore_prefixes = ignore_prefixes
+        self._debounce_seconds = debounce_seconds
+        self._recent_events: Dict[str, float] = {}
+        self._lock = threading.Lock()
 
-        :param target_path: Directory path to monitor.
-        :param recursive: Whether to monitor subdirectories recursively.
-        :param event_callback: Callback function receiving normalized event dictionaries.
-        """
-        self.target_path = Path(target_path).resolve()
-        self.recursive = recursive
+    def _should_ignore(self, path_str: str) -> bool:
+        base_name = os.path.basename(path_str)
+        if any(base_name.startswith(p) for p in self._ignore_prefixes):
+            return True
+        ext = Path(path_str).suffix.lower()
+        if ext in self._ignore_exts:
+            return True
+        return False
+
+    def _is_debounced(self, key: str) -> bool:
+        now = time.time()
+        with self._lock:
+            last_time = self._recent_events.get(key, 0.0)
+            if (now - last_time) < self._debounce_seconds:
+                return True
+            self._recent_events[key] = now
+            # Prune old cache entries
+            if len(self._recent_events) > 500:
+                cutoff = now - 5.0
+                self._recent_events = {k: v for k, v in self._recent_events.items() if v > cutoff}
+            return False
+
+    def _normalize_and_emit(self, action: str, event: FileSystemEvent) -> None:
+        try:
+            resolved_path = str(Path(event.src_path).resolve())
+            if self._should_ignore(resolved_path):
+                return
+
+            debounce_key = f"{action}:{resolved_path}"
+            if self._is_debounced(debounce_key):
+                return
+
+            is_dir = event.is_directory
+            size_bytes: Optional[int] = None
+            mtime_iso: Optional[str] = None
+
+            if not is_dir and action != "FILE_DELETED":
+                try:
+                    if os.path.exists(resolved_path):
+                        stat = os.stat(resolved_path)
+                        size_bytes = stat.st_size
+                        mtime_iso = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat()
+                except OSError:
+                    pass
+
+            now_utc = datetime.now(timezone.utc).isoformat()
+            raw_data = {
+                "event_type": event.event_type,
+                "is_directory": is_dir,
+                "src_path": resolved_path,
+                "action": action.lower().replace("file_", "")
+            }
+            if size_bytes is not None:
+                raw_data["size_bytes"] = size_bytes
+            if mtime_iso:
+                raw_data["mtime"] = mtime_iso
+
+            details = {
+                "file_path": resolved_path,
+                "file_name": os.path.basename(resolved_path),
+                "file_extension": Path(resolved_path).suffix.lower() if not is_dir else "",
+                "is_directory": is_dir,
+                "size_bytes": size_bytes,
+                "mtime": mtime_iso or now_utc
+            }
+
+            normalized_event: Dict[str, Any] = {
+                "source": "fs",
+                "timestamp": now_utc,
+                "entity": resolved_path,
+                "action": action,
+                "entity_type": "file",
+                "details": details,
+                "raw_data": raw_data,
+            }
+
+            logger.info("[COLLECTED FS] %s: %s", action, resolved_path)
+            self._callback(normalized_event)
+        except Exception as exc:
+            logger.error("Error processing file system event: %s", exc)
+
+    def on_created(self, event: FileSystemEvent) -> None:
+        self._normalize_and_emit("FILE_CREATED", event)
+
+    def on_modified(self, event: FileSystemEvent) -> None:
+        self._normalize_and_emit("FILE_MODIFIED", event)
+
+    def on_deleted(self, event: FileSystemEvent) -> None:
+        self._normalize_and_emit("FILE_DELETED", event)
+
+    def on_moved(self, event: FileSystemEvent) -> None:
+        self._normalize_and_emit("FILE_MOVED", event)
+
+
+class FileSystemCollector:
+    """
+    Multi-path Watchdog collector supporting dynamic addition/removal of drives.
+    """
+
+    def __init__(
+        self,
+        watch_paths: Optional[List[str]] = None,
+        event_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        ignore_exts: Optional[Set[str]] = None,
+        ignore_prefixes: Optional[Set[str]] = None,
+        debounce_seconds: float = 0.5,
+    ) -> None:
+        self.watch_paths: List[str] = watch_paths or []
         self.event_callback = event_callback or self._default_event_handler
-        self._observer: Optional[Observer] = None
-        self._is_running: bool = False
+        self.ignore_exts = ignore_exts or DEFAULT_IGNORE_EXTENSIONS
+        self.ignore_prefixes = ignore_prefixes or DEFAULT_IGNORE_PREFIXES
+        self.debounce_seconds = debounce_seconds
+
+        self._observer = Observer()
+        self._handler = _ForensicEventHandler(
+            callback=self.event_callback,
+            ignore_exts=self.ignore_exts,
+            ignore_prefixes=self.ignore_prefixes,
+            debounce_seconds=self.debounce_seconds,
+        )
+        self._active_watches: Dict[str, Any] = {}
+        self._is_running = False
 
     @staticmethod
     def _default_event_handler(event: Dict[str, Any]) -> None:
-        """Default fallback handler that logs events."""
-        logger.info("[FileSystemCollector] Captured: %s", json.dumps(event))
+        logger.info("[FS] Event: %s", json.dumps(event))
+
+    def add_watch(self, path: str) -> bool:
+        """Dynamically starts monitoring a path (e.g. when USB drive arrives)."""
+        target = str(Path(path).resolve())
+        if target in self._active_watches:
+            return True
+
+        if not os.path.exists(target):
+            logger.warning("Cannot watch non-existent path: %s", target)
+            return False
+
+        try:
+            watch = self._observer.schedule(self._handler, target, recursive=True)
+            self._active_watches[target] = watch
+            logger.info("[WATCHDOG] Scheduled watch on target: %s", target)
+            return True
+        except Exception as e:
+            logger.error("Failed to schedule watch on %s: %s", target, e)
+            return False
+
+    def remove_watch(self, path: str) -> None:
+        """Stops monitoring a path (e.g. when USB drive unmounted)."""
+        target = str(Path(path).resolve())
+        watch = self._active_watches.pop(target, None)
+        if watch:
+            try:
+                self._observer.unschedule(watch)
+                logger.info("[WATCHDOG] Unscheduled watch on: %s", target)
+            except Exception as e:
+                logger.warning("Error unscheduling watch on %s: %s", target, e)
 
     def start(self) -> None:
-        """
-        Starts the watchdog observer in a dedicated background thread.
-        """
         if self._is_running:
-            logger.warning(
-                "FileSystemCollector is already active on %s", self.target_path
-            )
             return
 
-        if not self.target_path.exists():
-            raise FileNotFoundError(
-                f"Target directory does not exist: {self.target_path}"
-            )
+        # Schedule initial paths
+        for p in self.watch_paths:
+            self.add_watch(p)
 
-        logger.info(
-            "Initializing FileSystemCollector for target: %s (recursive=%s)",
-            self.target_path,
-            self.recursive,
-        )
-
-        event_handler = _ForensicFileSystemEventHandler(callback=self.event_callback)
-        self._observer = Observer()
-        self._observer.schedule(
-            event_handler, str(self.target_path), recursive=self.recursive
-        )
         self._observer.start()
         self._is_running = True
-        logger.info("FileSystemCollector background observer started successfully.")
+        logger.info("FileSystemCollector started.")
 
     def stop(self) -> None:
-        """
-        Cleanly stops and joins the observer background thread.
-        """
-        if not self._is_running or self._observer is None:
-            logger.debug("FileSystemCollector is not currently running.")
+        if not self._is_running:
             return
-
-        logger.info("Stopping FileSystemCollector background observer...")
+        logger.info("Stopping FileSystemCollector...")
         self._observer.stop()
-        self._observer.join()
+        self._observer.join(timeout=3.0)
+        self._active_watches.clear()
         self._is_running = False
-        logger.info("FileSystemCollector observer terminated cleanly.")
-
-    @property
-    def is_running(self) -> bool:
-        """Returns whether the collector is currently monitoring."""
-        return (
-            self._is_running
-            and self._observer is not None
-            and self._observer.is_alive()
-        )
-
-
-if __name__ == "__main__":
-    import argparse
-
-    # Configure structured console logging for test run
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    parser = argparse.ArgumentParser(
-        description="ForensiTrace File System Collector (Test Runner)"
-    )
-    parser.add_argument(
-        "--path",
-        "-p",
-        type=str,
-        default=".",
-        help="Directory path to monitor (default: current directory)",
-    )
-    parser.add_argument(
-        "--no-recursive",
-        action="store_true",
-        help="Disable recursive monitoring of subdirectories",
-    )
-    cli_args = parser.parse_args()
-
-    watch_directory = Path(cli_args.path).resolve()
-
-    print("=" * 80)
-    print(" FORENSITRACE - FILE SYSTEM COLLECTOR [TEST MODE]")
-    print(f" Target Path : {watch_directory}")
-    print(f" Recursive   : {not cli_args.no_recursive}")
-    print(" Status      : Active (Press Ctrl+C to terminate)")
-    print("=" * 80)
-
-    def print_captured_event(event_data: Dict[str, Any]) -> None:
-        print("\n[+] Captured File System Event:")
-        print(json.dumps(event_data, indent=2))
-
-    collector = FileSystemCollector(
-        target_path=watch_directory,
-        recursive=not cli_args.no_recursive,
-        event_callback=print_captured_event,
-    )
-
-    try:
-        collector.start()
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\n[*] KeyboardInterrupt detected. Initiating graceful shutdown...")
-    finally:
-        collector.stop()
-        print("[*] Collector successfully stopped.")
+        logger.info("FileSystemCollector stopped.")

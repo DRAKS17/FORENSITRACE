@@ -1,0 +1,73 @@
+# ForensiTrace Correlation Rules Definition
+# Rule-based correlation logic without machine learning.
+# Thresholds and time windows can be tuned without modifying or redeploying code.
+
+version: "1.0"
+rules:
+  - id: "R1"
+    name: "DEVICE_FILE_STAGING"
+    title: "Removable Storage File Staging"
+    enabled: true
+    window_seconds: 300  # 5 minutes
+    pattern: "device arrives -> file created or modified on that drive"
+    description: "A removable device was plugged in, and one or more files were staged or modified on the drive shortly thereafter."
+    base_confidence: 0.70
+
+  - id: "R2"
+    name: "FILE_CREATION_EXECUTION"
+    title: "Staged File Execution"
+    enabled: true
+    window_seconds: 600  # 10 minutes
+    pattern: "file created -> process started from that same path"
+    description: "A file was written to disk and subsequently spawned as a process within the correlation window."
+    base_confidence: 0.75
+
+  - id: "R3"
+    name: "DIRECT_REMOVABLE_EXECUTION"
+    title: "Direct Execution from Removable Drive"
+    enabled: true
+    window_seconds: 600  # 10 minutes
+    pattern: "process started from removable drive without prior write seen"
+    description: "A process was executed directly from a removable volume without any preceding local write event captured."
+    base_confidence: 0.80
+
+  - id: "R4"
+    name: "BULK_REMOVABLE_COPY"
+    title: "Rapid Bulk File Copy to Removable Drive"
+    enabled: true
+    window_seconds: 60   # 60 seconds
+    count_threshold: 5   # At least 5 files in burst
+    pattern: "multiple files created on removable drive in rapid burst"
+    description: "Mass file creation on a removable volume, indicative of automated data exfiltration or mass payload deployment."
+    base_confidence: 0.85
+
+  - id: "R5"
+    name: "LOG_CLEARED_COVERUP"
+    title: "Audit Log Cleared Following Suspicious Activity"
+    enabled: true
+    window_seconds: 600  # 10 minutes
+    pattern: "log cleared event (1102/104) occurring within window of file or USB activity"
+    description: "Windows Security or System event logs were cleared shortly after suspicious storage or file activity, indicating anti-forensics cover-up."
+    base_confidence: 0.90
+
+  - id: "R6"
+    name: "TIMESTAMP_DISAGREEMENT"
+    title: "File Timestamp Inconsistency (Timestomping / Clock Skew)"
+    enabled: true
+    threshold_seconds: 120  # 2 minutes difference
+    pattern: "file modified time (mtime) diverges from agent observation time"
+    description: "The metadata modified timestamp on the file differs significantly from the agent observation time, indicating potential timestomping or clock tampering."
+    base_confidence: 0.80
+
+  - id: "R7"
+    name: "USB_STAGING_EXECUTION"
+    title: "USB Staging and Process Execution Chain"
+    enabled: true
+    window_seconds: 900  # 15 minutes
+    pattern: "R1 followed by R2: USB arrival -> file write -> execution"
+    description: "Complete end-to-end multi-stage intrusion chain: USB device arrival, rapid file staging, and binary execution."
+    tight_threshold_seconds: 30
+    high_confidence_score: 0.90
+    medium_confidence_score: 0.75
+    partial_confidence_score: 0.50
+    divergence_penalty: 0.15

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-10-23T15:18:40.989792+00:00",
+  "platform": "win32 (nt)",
+  "idle": {
+    "avg_cpu_percent": 0.0,
+    "max_cpu_percent": 0.0,
+    "avg_memory_mb": 32.6,
+    "max_memory_mb": 32.61
+  },
+  "active_burst": {
+    "avg_cpu_percent": 0.0,
+    "max_cpu_percent": 0.0,
+    "avg_memory_mb": 32.82,
+    "max_memory_mb": 32.91
+  },
+  "events_captured": 100
+}

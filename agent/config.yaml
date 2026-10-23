@@ -1,0 +1,49 @@
+# ForensiTrace Endpoint Agent Configuration
+agent:
+  host_id: "WIN-ENDPOINT-01"
+  user_context: "TargetUser"
+
+backend:
+  url: "http://localhost:8000/api/v1/events"
+  batch_size: 10
+  flush_interval_seconds: 2.0
+  retry_max_attempts: 5
+  retry_backoff_seconds: 1.5
+
+heartbeat:
+  enabled: true
+  interval_seconds: 10.0
+
+collectors:
+  usb:
+    enabled: true
+    poll_interval_ms: 1000
+
+  file_system:
+    enabled: true
+    # Focus on user directories to avoid noisy system files
+    watch_user_folders: true
+    custom_paths: []
+    ignore_extensions:
+      - ".tmp"
+      - ".crdownload"
+      - ".part"
+      - ".log"
+      - ".swp"
+    ignore_prefixes:
+      - "~$"
+      - "Thumbs.db"
+      - "desktop.ini"
+    debounce_seconds: 0.5
+
+  event_log:
+    enabled: true
+    channels:
+      - "Security"
+      - "System"
+    poll_interval: 1.0
+    target_event_ids:
+      - 4688  # Process Creation
+      - 4624  # Successful Logon
+      - 1102  # Audit Log Cleared
+      - 104   # System Log Cleared

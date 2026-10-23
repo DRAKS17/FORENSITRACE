@@ -67,6 +67,8 @@ venv.bak/
 *.log
 collector_dump/
 temp_evidence/
+reports/*.pdf
+frontend/dist/
 
 # IDEs and Code Editors
 .vscode/
