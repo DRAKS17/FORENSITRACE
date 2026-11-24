@@ -106,11 +106,22 @@ class EvidenceStore:
                     timestamp_end TEXT NOT NULL,
                     confidence_score REAL NOT NULL,
                     confidence_level TEXT NOT NULL,
+                    ml_anomaly_score REAL,
+                    threat_level TEXT,
                     evidence_event_ids TEXT NOT NULL,
                     metadata TEXT NOT NULL
                 )
                 """
             )
+            cursor.execute("PRAGMA table_info(activities)")
+            existing_act_cols = {col[1] for col in cursor.fetchall()}
+            for col_name, col_type in [("ml_anomaly_score", "REAL"), ("threat_level", "TEXT")]:
+                if col_name not in existing_act_cols:
+                    try:
+                        cursor.execute(f"ALTER TABLE activities ADD COLUMN {col_name} {col_type}")
+                    except Exception:
+                        pass
+
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_activities_timestamp_start ON activities(timestamp_start)")
 
             # 3. Evidence Provenance Link Table: activity_events
@@ -410,8 +421,9 @@ class EvidenceStore:
                 """
                 INSERT INTO activities (
                     rule_name, title, narrative, timestamp_start, timestamp_end,
-                    confidence_score, confidence_level, evidence_event_ids, metadata
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    confidence_score, confidence_level, ml_anomaly_score, threat_level,
+                    evidence_event_ids, metadata
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     activity.rule_name,
@@ -421,6 +433,8 @@ class EvidenceStore:
                     activity.timestamp_end.isoformat(),
                     activity.confidence_score,
                     activity.confidence_level,
+                    activity.ml_anomaly_score,
+                    activity.threat_level,
                     json.dumps(activity.evidence_event_ids),
                     json.dumps(activity.metadata),
                 ),
@@ -474,6 +488,8 @@ class EvidenceStore:
             timestamp_end=activity.timestamp_end,
             confidence_score=activity.confidence_score,
             confidence_level=activity.confidence_level,
+            ml_anomaly_score=activity.ml_anomaly_score,
+            threat_level=activity.threat_level,
             evidence_event_ids=activity.evidence_event_ids,
             metadata=activity.metadata,
             evidence_links=link_list
@@ -515,6 +531,7 @@ class EvidenceStore:
 
         records = []
         for r in rows:
+            keys = r.keys()
             records.append(
                 ActivityRecord(
                     id=r["id"],
@@ -525,6 +542,8 @@ class EvidenceStore:
                     timestamp_end=datetime.fromisoformat(r["timestamp_end"]),
                     confidence_score=r["confidence_score"],
                     confidence_level=r["confidence_level"],
+                    ml_anomaly_score=r["ml_anomaly_score"] if "ml_anomaly_score" in keys else None,
+                    threat_level=r["threat_level"] if "threat_level" in keys else None,
                     evidence_event_ids=json.loads(r["evidence_event_ids"]),
                     metadata=json.loads(r["metadata"])
                 )
@@ -542,6 +561,7 @@ class EvidenceStore:
             if not row:
                 return None
 
+            row_keys = row.keys()
             act_record = ActivityRecord(
                 id=row["id"],
                 rule_name=row["rule_name"],
@@ -551,6 +571,8 @@ class EvidenceStore:
                 timestamp_end=datetime.fromisoformat(row["timestamp_end"]),
                 confidence_score=row["confidence_score"],
                 confidence_level=row["confidence_level"],
+                ml_anomaly_score=row["ml_anomaly_score"] if "ml_anomaly_score" in row_keys else None,
+                threat_level=row["threat_level"] if "threat_level" in row_keys else None,
                 evidence_event_ids=json.loads(row["evidence_event_ids"]),
                 metadata=json.loads(row["metadata"])
             )
@@ -597,7 +619,7 @@ class EvidenceStore:
             # Fetch recent activities
             cursor.execute(
                 """
-                SELECT id, rule_name, title, narrative, timestamp_start, confidence_level, confidence_score
+                SELECT id, rule_name, title, narrative, timestamp_start, confidence_level, confidence_score, ml_anomaly_score, threat_level
                 FROM activities
                 ORDER BY timestamp_start DESC LIMIT ?
                 """,
@@ -622,6 +644,7 @@ class EvidenceStore:
         timeline: List[Dict[str, Any]] = []
 
         for r in act_rows:
+            r_keys = r.keys()
             timeline.append({
                 "id": f"act-{r['id']}",
                 "item_type": "activity",
@@ -630,6 +653,8 @@ class EvidenceStore:
                 "description": r["narrative"],
                 "confidence_level": r["confidence_level"],
                 "confidence_score": r["confidence_score"],
+                "ml_anomaly_score": r["ml_anomaly_score"] if "ml_anomaly_score" in r_keys else None,
+                "threat_level": r["threat_level"] if "threat_level" in r_keys else None,
                 "ref_id": r["id"],
                 "rule_name": r["rule_name"]
             })

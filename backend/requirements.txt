@@ -4,5 +4,8 @@ sqlalchemy
 pydantic
 python-evtx
 reportlab
+pypdf
 pyyaml
 requests
+numpy
+torch

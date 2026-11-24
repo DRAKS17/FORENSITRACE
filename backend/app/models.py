@@ -146,6 +146,16 @@ class ActivityCreate(BaseModel):
     timestamp_end: datetime = Field(..., description="End boundary of the correlated activity.")
     confidence_score: float = Field(..., description="Confidence score from 0.0 to 1.0", ge=0.0, le=1.0)
     confidence_level: Literal["LOW", "MEDIUM", "HIGH"] = Field(..., description="Categorical confidence level.")
+    ml_anomaly_score: Optional[float] = Field(
+        default=None,
+        description="Normalized LSTM autoencoder sequence reconstruction error between 0.0 and 1.0.",
+        ge=0.0,
+        le=1.0
+    )
+    threat_level: Optional[Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]] = Field(
+        default=None,
+        description="Categorical combined risk rating derived from rule confidence and ML anomaly score."
+    )
     evidence_event_ids: List[int] = Field(..., description="Provenance links to raw EventRecord IDs.")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Metadata such as timing breakdown and anomalies.")
     evidence_links: Optional[List[Dict[str, Any]]] = Field(
@@ -185,6 +195,8 @@ class TimelineItem(BaseModel):
     title: str = Field(..., description="Short summary title.")
     description: str = Field(..., description="Narrative or detailed context.")
     confidence_level: Optional[str] = Field(default=None, description="Confidence level if activity.")
+    ml_anomaly_score: Optional[float] = Field(default=None, description="ML anomaly score if activity.")
+    threat_level: Optional[str] = Field(default=None, description="Categorical threat level if activity.")
     source: Optional[str] = Field(default=None, description="Source channel if event.")
     ref_id: int = Field(..., description="Original database ID.")
     metadata: Dict[str, Any] = Field(default_factory=dict)

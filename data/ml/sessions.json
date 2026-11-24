@@ -1,0 +1,410 @@
+{
+  "sess_normal_office_01": [
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T09:00:00+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.4,
+        "memory_mb": 22.0
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "eventlog",
+      "action": "USER_LOGON",
+      "timestamp": "2026-10-20T09:00:15+00:00",
+      "entity": "TargetUser",
+      "details": {
+        "event_id": 4624,
+        "logon_type": 2,
+        "user": "TargetUser"
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T09:00:25+00:00",
+      "entity": "C:\\Program Files\\Microsoft Office\\WINWORD.EXE",
+      "details": {
+        "event_id": 4688,
+        "process_name": "WINWORD.EXE"
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "timestamp": "2026-10-20T09:00:33+00:00",
+      "entity": "C:\\Users\\TargetUser\\Documents\\Quarterly_Report.docx",
+      "details": {
+        "file_extension": ".docx",
+        "size_bytes": 45056
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_MODIFIED",
+      "timestamp": "2026-10-20T09:01:08+00:00",
+      "entity": "C:\\Users\\TargetUser\\Documents\\Quarterly_Report.docx",
+      "details": {
+        "file_extension": ".docx",
+        "size_bytes": 52100
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T09:01:38+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.5,
+        "memory_mb": 22.8
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T09:01:50+00:00",
+      "entity": "C:\\Program Files\\Microsoft Office\\EXCEL.EXE",
+      "details": {
+        "event_id": 4688,
+        "process_name": "EXCEL.EXE"
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "timestamp": "2026-10-20T09:01:56+00:00",
+      "entity": "C:\\Users\\TargetUser\\Documents\\Financial_Model.xlsx",
+      "details": {
+        "file_extension": ".xlsx",
+        "size_bytes": 128000
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_MODIFIED",
+      "timestamp": "2026-10-20T09:02:16+00:00",
+      "entity": "C:\\Users\\TargetUser\\Documents\\Financial_Model.xlsx",
+      "details": {
+        "file_extension": ".xlsx",
+        "size_bytes": 132400
+      }
+    },
+    {
+      "session_id": "sess_normal_office_01",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T09:02:46+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.3,
+        "memory_mb": 22.4
+      }
+    }
+  ],
+  "sess_normal_dev_02": [
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T11:00:00+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.6,
+        "memory_mb": 24.1
+      }
+    },
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T11:00:10+00:00",
+      "entity": "C:\\Users\\Dev\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe",
+      "details": {
+        "event_id": 4688,
+        "process_name": "Code.exe"
+      }
+    },
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "timestamp": "2026-10-20T11:00:25+00:00",
+      "entity": "C:\\Users\\Dev\\Projects\\app\\main.py",
+      "details": {
+        "file_extension": ".py",
+        "size_bytes": 2048
+      }
+    },
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "fs",
+      "action": "FILE_MODIFIED",
+      "timestamp": "2026-10-20T11:00:43+00:00",
+      "entity": "C:\\Users\\Dev\\Projects\\app\\main.py",
+      "details": {
+        "file_extension": ".py",
+        "size_bytes": 3120
+      }
+    },
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T11:01:08+00:00",
+      "entity": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "details": {
+        "event_id": 4688,
+        "process_name": "powershell.exe"
+      }
+    },
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T11:01:20+00:00",
+      "entity": "C:\\Python313\\python.exe",
+      "details": {
+        "event_id": 4688,
+        "process_name": "python.exe",
+        "command_line": "python -m unittest"
+      }
+    },
+    {
+      "session_id": "sess_normal_dev_02",
+      "host": "WIN-DEV-02",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T11:01:50+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.8,
+        "memory_mb": 25.0
+      }
+    }
+  ],
+  "sess_normal_usb_03": [
+    {
+      "session_id": "sess_normal_usb_03",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T13:00:00+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.4,
+        "memory_mb": 23.0
+      }
+    },
+    {
+      "session_id": "sess_normal_usb_03",
+      "host": "WIN-OFFICE-01",
+      "source": "usb",
+      "action": "DEVICE_ARRIVED",
+      "timestamp": "2026-10-20T13:00:05+00:00",
+      "entity": "F: (SanDisk Ultra)",
+      "details": {
+        "drive_letter": "F:",
+        "volume_name": "SanDisk Ultra",
+        "serial": "SD88123"
+      }
+    },
+    {
+      "session_id": "sess_normal_usb_03",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "timestamp": "2026-10-20T13:00:25+00:00",
+      "entity": "C:\\Users\\TargetUser\\Desktop\\Meeting_Slides.pptx",
+      "details": {
+        "file_extension": ".pptx",
+        "size_bytes": 5242880
+      }
+    },
+    {
+      "session_id": "sess_normal_usb_03",
+      "host": "WIN-OFFICE-01",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T13:00:40+00:00",
+      "entity": "C:\\Program Files\\Microsoft Office\\POWERPNT.EXE",
+      "details": {
+        "event_id": 4688,
+        "process_name": "POWERPNT.EXE"
+      }
+    },
+    {
+      "session_id": "sess_normal_usb_03",
+      "host": "WIN-OFFICE-01",
+      "source": "usb",
+      "action": "DEVICE_REMOVED",
+      "timestamp": "2026-10-20T13:01:40+00:00",
+      "entity": "F: (SanDisk Ultra)",
+      "details": {
+        "drive_letter": "F:"
+      }
+    },
+    {
+      "session_id": "sess_normal_usb_03",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T13:02:10+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.3,
+        "memory_mb": 22.5
+      }
+    }
+  ],
+  "sess_normal_web_04": [
+    {
+      "session_id": "sess_normal_web_04",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T15:00:00+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.5,
+        "memory_mb": 23.5
+      }
+    },
+    {
+      "session_id": "sess_normal_web_04",
+      "host": "WIN-OFFICE-01",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T15:00:10+00:00",
+      "entity": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "details": {
+        "event_id": 4688,
+        "process_name": "chrome.exe"
+      }
+    },
+    {
+      "session_id": "sess_normal_web_04",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "timestamp": "2026-10-20T15:00:25+00:00",
+      "entity": "C:\\Users\\TargetUser\\AppData\\Local\\Google\\Chrome\\Cache\\data_0",
+      "details": {
+        "file_extension": "",
+        "size_bytes": 1048576
+      }
+    },
+    {
+      "session_id": "sess_normal_web_04",
+      "host": "WIN-OFFICE-01",
+      "source": "fs",
+      "action": "FILE_MODIFIED",
+      "timestamp": "2026-10-20T15:00:45+00:00",
+      "entity": "C:\\Users\\TargetUser\\AppData\\Local\\Google\\Chrome\\Cache\\data_0",
+      "details": {
+        "file_extension": "",
+        "size_bytes": 2097152
+      }
+    },
+    {
+      "session_id": "sess_normal_web_04",
+      "host": "WIN-OFFICE-01",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T15:01:15+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.4,
+        "memory_mb": 23.2
+      }
+    }
+  ],
+  "sess_normal_eval_05": [
+    {
+      "session_id": "sess_normal_eval_05",
+      "host": "WIN-DEV-02",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T17:00:00+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.5,
+        "memory_mb": 24.0
+      }
+    },
+    {
+      "session_id": "sess_normal_eval_05",
+      "host": "WIN-DEV-02",
+      "source": "eventlog",
+      "action": "PROCESS_STARTED",
+      "timestamp": "2026-10-20T17:00:12+00:00",
+      "entity": "C:\\Windows\\System32\\notepad.exe",
+      "details": {
+        "event_id": 4688,
+        "process_name": "notepad.exe"
+      }
+    },
+    {
+      "session_id": "sess_normal_eval_05",
+      "host": "WIN-DEV-02",
+      "source": "fs",
+      "action": "FILE_CREATED",
+      "timestamp": "2026-10-20T17:00:27+00:00",
+      "entity": "C:\\Users\\Dev\\Desktop\\meeting_notes.txt",
+      "details": {
+        "file_extension": ".txt",
+        "size_bytes": 1024
+      }
+    },
+    {
+      "session_id": "sess_normal_eval_05",
+      "host": "WIN-DEV-02",
+      "source": "fs",
+      "action": "FILE_MODIFIED",
+      "timestamp": "2026-10-20T17:00:47+00:00",
+      "entity": "C:\\Users\\Dev\\Desktop\\meeting_notes.txt",
+      "details": {
+        "file_extension": ".txt",
+        "size_bytes": 2450
+      }
+    },
+    {
+      "session_id": "sess_normal_eval_05",
+      "host": "WIN-DEV-02",
+      "source": "heartbeat",
+      "action": "HEARTBEAT",
+      "timestamp": "2026-10-20T17:01:17+00:00",
+      "entity": "agent_service",
+      "details": {
+        "cpu_percent": 0.4,
+        "memory_mb": 23.9
+      }
+    }
+  ]
+}

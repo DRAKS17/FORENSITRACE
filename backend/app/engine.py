@@ -91,6 +91,22 @@ class CorrelationEngine:
         activities.extend(self._rule_r5_log_cleared_coverup(sorted_events))
         activities.extend(self._rule_r6_timestamp_disagreement(sorted_events))
 
+        # Hybrid ML Anomaly Scoring and Categorical Threat Level Assignment
+        try:
+            from engine.ml.scoring import get_scoring_service
+            scoring_svc = get_scoring_service()
+            for act in activities:
+                ml_score, threat_level, ml_narrative = scoring_svc.score_activity(act, sorted_events)
+                act.ml_anomaly_score = ml_score
+                act.threat_level = threat_level
+                if ml_narrative and ml_narrative not in act.narrative:
+                    act.narrative = f"{act.narrative} {ml_narrative}"
+        except Exception as e:
+            logger.warning("ML scoring service unavailable (%s). Falling back to rule-only risk level.", e)
+            for act in activities:
+                if not act.threat_level:
+                    act.threat_level = "HIGH" if act.confidence_score >= 0.75 else ("MEDIUM" if act.confidence_score >= 0.5 else "LOW")
+
         logger.info("Correlation engine analysis completed. Generated %d activities.", len(activities))
         return activities
 

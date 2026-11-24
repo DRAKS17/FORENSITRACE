@@ -205,6 +205,10 @@ def get_metrics():
 
 
 @router.get("/report/{activity_id}")
+@router.get("/api/v1/report/{activity_id}")
+@router.get("/activities/{activity_id}/report")
+@router.get("/api/v1/activities/{activity_id}/report")
+@router.get("/activities/{activity_id}/export")
 @router.get("/api/v1/activities/{activity_id}/export")
 def export_activity_pdf(activity_id: int):
     """Generates and downloads a formal forensic PDF report with cryptographic assurance."""

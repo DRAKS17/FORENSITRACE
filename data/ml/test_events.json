@@ -1,0 +1,62 @@
+[
+  {
+    "session_id": "sess_normal_web_04",
+    "host": "WIN-OFFICE-01",
+    "source": "heartbeat",
+    "action": "HEARTBEAT",
+    "timestamp": "2026-10-20T15:00:00+00:00",
+    "entity": "agent_service",
+    "details": {
+      "cpu_percent": 0.5,
+      "memory_mb": 23.5
+    }
+  },
+  {
+    "session_id": "sess_normal_web_04",
+    "host": "WIN-OFFICE-01",
+    "source": "eventlog",
+    "action": "PROCESS_STARTED",
+    "timestamp": "2026-10-20T15:00:10+00:00",
+    "entity": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "details": {
+      "event_id": 4688,
+      "process_name": "chrome.exe"
+    }
+  },
+  {
+    "session_id": "sess_normal_web_04",
+    "host": "WIN-OFFICE-01",
+    "source": "fs",
+    "action": "FILE_CREATED",
+    "timestamp": "2026-10-20T15:00:25+00:00",
+    "entity": "C:\\Users\\TargetUser\\AppData\\Local\\Google\\Chrome\\Cache\\data_0",
+    "details": {
+      "file_extension": "",
+      "size_bytes": 1048576
+    }
+  },
+  {
+    "session_id": "sess_normal_web_04",
+    "host": "WIN-OFFICE-01",
+    "source": "fs",
+    "action": "FILE_MODIFIED",
+    "timestamp": "2026-10-20T15:00:45+00:00",
+    "entity": "C:\\Users\\TargetUser\\AppData\\Local\\Google\\Chrome\\Cache\\data_0",
+    "details": {
+      "file_extension": "",
+      "size_bytes": 2097152
+    }
+  },
+  {
+    "session_id": "sess_normal_web_04",
+    "host": "WIN-OFFICE-01",
+    "source": "heartbeat",
+    "action": "HEARTBEAT",
+    "timestamp": "2026-10-20T15:01:15+00:00",
+    "entity": "agent_service",
+    "details": {
+      "cpu_percent": 0.4,
+      "memory_mb": 23.2
+    }
+  }
+]

@@ -1,0 +1,107 @@
+{
+  "evaluation_timestamp": "2026-11-24T13:44:02.398856+00:00",
+  "threshold_tau": 0.4216700494289398,
+  "threshold_methodology": "99th percentile reconstruction MSE on held-out normal validation set",
+  "comparison_table": [
+    {
+      "tier": "Rules Alone (R1-R7)",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "strengths_and_gaps": "Supplies exact causal chains and raw evidence IDs. Misses novel zero-day execution paths."
+    },
+    {
+      "tier": "ML Alone (LSTM Autoencoder)",
+      "precision": 0.8,
+      "recall": 1.0,
+      "f1": 0.8889,
+      "fpr": 0.5,
+      "strengths_and_gaps": "Flags statistical sequence deviations. Cannot explain why or identify root-cause provenance."
+    },
+    {
+      "tier": "Hybrid (Rules + ML Anomaly)",
+      "precision": 0.8,
+      "recall": 1.0,
+      "f1": 0.8889,
+      "fpr": 0.5,
+      "strengths_and_gaps": "Optimal: rules provide explainability and evidence, while ML flags anomalous velocity and tunes threat level."
+    }
+  ],
+  "detailed_test_runs": [
+    {
+      "test_case": "Scenario A (USB Staging -> Exec)",
+      "expected_attack": true,
+      "rules_fired": [
+        "R7_USB_STAGING_EXECUTION",
+        "R1_DEVICE_FILE_STAGING",
+        "R2_FILE_CREATION_EXECUTION"
+      ],
+      "ml_anomaly_score": 0.685,
+      "hybrid_threat_level": "HIGH",
+      "rules_caught": true,
+      "ml_caught": true,
+      "hybrid_caught": true
+    },
+    {
+      "test_case": "Scenario A' (Counterbalanced Variant)",
+      "expected_attack": true,
+      "rules_fired": [
+        "R7_USB_STAGING_EXECUTION",
+        "R1_DEVICE_FILE_STAGING",
+        "R2_FILE_CREATION_EXECUTION"
+      ],
+      "ml_anomaly_score": 0.7,
+      "hybrid_threat_level": "CRITICAL",
+      "rules_caught": true,
+      "ml_caught": true,
+      "hybrid_caught": true
+    },
+    {
+      "test_case": "Scenario B (Mass Exfiltration)",
+      "expected_attack": true,
+      "rules_fired": [
+        "R7_USB_STAGING_EXECUTION",
+        "R1_DEVICE_FILE_STAGING",
+        "R4_BULK_REMOVABLE_COPY"
+      ],
+      "ml_anomaly_score": 0.728,
+      "hybrid_threat_level": "HIGH",
+      "rules_caught": true,
+      "ml_caught": true,
+      "hybrid_caught": true
+    },
+    {
+      "test_case": "Scenario C (Log Cleared Cover-up)",
+      "expected_attack": true,
+      "rules_fired": [
+        "R5_LOG_CLEARED_COVERUP"
+      ],
+      "ml_anomaly_score": 0.736,
+      "hybrid_threat_level": "CRITICAL",
+      "rules_caught": true,
+      "ml_caught": true,
+      "hybrid_caught": true
+    },
+    {
+      "test_case": "Noise Session (Routine Admin Noise)",
+      "expected_attack": false,
+      "rules_fired": [],
+      "ml_anomaly_score": 0.459,
+      "hybrid_threat_level": "LOW",
+      "rules_caught": false,
+      "ml_caught": false,
+      "hybrid_caught": false
+    },
+    {
+      "test_case": "Held-Out Normal Session 5",
+      "expected_attack": false,
+      "rules_fired": [],
+      "ml_anomaly_score": 0.539,
+      "hybrid_threat_level": "MEDIUM",
+      "rules_caught": false,
+      "ml_caught": true,
+      "hybrid_caught": true
+    }
+  ]
+}

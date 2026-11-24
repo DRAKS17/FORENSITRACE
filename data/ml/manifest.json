@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-11-24T13:31:58.290901+00:00",
+  "session_counts": 5,
+  "session_assignments": {
+    "sess_normal_eval_05": "train",
+    "sess_normal_office_01": "train",
+    "sess_normal_dev_02": "train",
+    "sess_normal_usb_03": "val",
+    "sess_normal_web_04": "test"
+  },
+  "counts": {
+    "train_events": 22,
+    "val_events": 6,
+    "test_events": 5
+  }
+}

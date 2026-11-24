@@ -45,6 +45,7 @@ export default function ActivityDetails({ activity, onClose }) {
 
     const getConfidenceClass = (level) => {
         switch (level?.toUpperCase()) {
+            case 'CRITICAL': return 'critical';
             case 'HIGH': return 'high';
             case 'MEDIUM': return 'medium';
             default: return 'low';
@@ -64,9 +65,15 @@ export default function ActivityDetails({ activity, onClose }) {
             {/* Header & Export Action */}
             <div className="detail-head">
                 <div className="detail-title-col">
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span className={`conf-pill ${getConfidenceClass(act.confidence_level)}`}>
-                            {act.confidence_level} ({act.confidence_score.toFixed(2)})
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span className={`threat-pill ${getConfidenceClass(act.threat_level || act.confidence_level)}`}>
+                            {act.threat_level || act.confidence_level}
+                        </span>
+                        <span className="ml-pill">
+                            ML Anomaly: {act.ml_anomaly_score !== null && act.ml_anomaly_score !== undefined ? act.ml_anomaly_score.toFixed(2) : 'N/A'}
+                        </span>
+                        <span className="conf-pill low">
+                            Rule Conf: {act.confidence_score.toFixed(2)}
                         </span>
                         <span className="row-rule">RULE: {act.rule_name}</span>
                     </div>

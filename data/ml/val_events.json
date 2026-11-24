@@ -1,0 +1,74 @@
+[
+  {
+    "session_id": "sess_normal_usb_03",
+    "host": "WIN-OFFICE-01",
+    "source": "heartbeat",
+    "action": "HEARTBEAT",
+    "timestamp": "2026-10-20T13:00:00+00:00",
+    "entity": "agent_service",
+    "details": {
+      "cpu_percent": 0.4,
+      "memory_mb": 23.0
+    }
+  },
+  {
+    "session_id": "sess_normal_usb_03",
+    "host": "WIN-OFFICE-01",
+    "source": "usb",
+    "action": "DEVICE_ARRIVED",
+    "timestamp": "2026-10-20T13:00:05+00:00",
+    "entity": "F: (SanDisk Ultra)",
+    "details": {
+      "drive_letter": "F:",
+      "volume_name": "SanDisk Ultra",
+      "serial": "SD88123"
+    }
+  },
+  {
+    "session_id": "sess_normal_usb_03",
+    "host": "WIN-OFFICE-01",
+    "source": "fs",
+    "action": "FILE_CREATED",
+    "timestamp": "2026-10-20T13:00:25+00:00",
+    "entity": "C:\\Users\\TargetUser\\Desktop\\Meeting_Slides.pptx",
+    "details": {
+      "file_extension": ".pptx",
+      "size_bytes": 5242880
+    }
+  },
+  {
+    "session_id": "sess_normal_usb_03",
+    "host": "WIN-OFFICE-01",
+    "source": "eventlog",
+    "action": "PROCESS_STARTED",
+    "timestamp": "2026-10-20T13:00:40+00:00",
+    "entity": "C:\\Program Files\\Microsoft Office\\POWERPNT.EXE",
+    "details": {
+      "event_id": 4688,
+      "process_name": "POWERPNT.EXE"
+    }
+  },
+  {
+    "session_id": "sess_normal_usb_03",
+    "host": "WIN-OFFICE-01",
+    "source": "usb",
+    "action": "DEVICE_REMOVED",
+    "timestamp": "2026-10-20T13:01:40+00:00",
+    "entity": "F: (SanDisk Ultra)",
+    "details": {
+      "drive_letter": "F:"
+    }
+  },
+  {
+    "session_id": "sess_normal_usb_03",
+    "host": "WIN-OFFICE-01",
+    "source": "heartbeat",
+    "action": "HEARTBEAT",
+    "timestamp": "2026-10-20T13:02:10+00:00",
+    "entity": "agent_service",
+    "details": {
+      "cpu_percent": 0.3,
+      "memory_mb": 22.5
+    }
+  }
+]

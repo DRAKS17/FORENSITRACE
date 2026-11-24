@@ -1,0 +1,22 @@
+{
+  "model_version": "v1.0-hybrid",
+  "trained_at": "2026-11-24T13:34:03.231403+00:00",
+  "input_dim": 13,
+  "hidden_dim": 32,
+  "window_size": 10,
+  "threshold": 0.4216700494289398,
+  "val_mean_mse": 0.4216700494289398,
+  "val_max_mse": 0.4216700494289398,
+  "canonical_actions": [
+    "DEVICE_ARRIVED",
+    "DEVICE_REMOVED",
+    "FILE_CREATED",
+    "FILE_MODIFIED",
+    "FILE_DELETED",
+    "FILE_MOVED",
+    "PROCESS_STARTED",
+    "LOG_CLEARED",
+    "USER_LOGON",
+    "HEARTBEAT"
+  ]
+}

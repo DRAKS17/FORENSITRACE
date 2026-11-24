@@ -55,8 +55,12 @@ export default function Dashboard() {
     };
 
     const filteredActivities = activities.filter(act => {
-        if (confidenceFilter !== 'ALL' && act.confidence_level.toUpperCase() !== confidenceFilter.toUpperCase()) {
-            return false;
+        if (confidenceFilter !== 'ALL') {
+            const threatMatch = act.threat_level && act.threat_level.toUpperCase() === confidenceFilter.toUpperCase();
+            const confMatch = act.confidence_level && act.confidence_level.toUpperCase() === confidenceFilter.toUpperCase();
+            if (!threatMatch && !confMatch) {
+                return false;
+            }
         }
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
@@ -73,6 +77,7 @@ export default function Dashboard() {
 
     const getConfidenceClass = (level) => {
         switch (level?.toUpperCase()) {
+            case 'CRITICAL': return 'critical';
             case 'HIGH': return 'high';
             case 'MEDIUM': return 'medium';
             default: return 'low';
@@ -96,6 +101,26 @@ export default function Dashboard() {
                 </div>
 
                 <div className="system-telemetry-strip">
+                    {/* Events Ingested */}
+                    <div className="metric-cell">
+                        <span className="metric-label">Ingested Events</span>
+                        <div className="metric-value-row">
+                            <span className="metric-num">{integrity?.total_records ?? 0}</span>
+                            <span className="metric-unit">raw</span>
+                        </div>
+                    </div>
+
+                    {/* Active ML Anomalies */}
+                    <div className="metric-cell">
+                        <span className="metric-label">Active Anomalies</span>
+                        <div className="metric-value-row">
+                            <span className="metric-num" style={{ color: 'var(--pill-high-ink)' }}>
+                                {activities.filter(a => (a.ml_anomaly_score || 0) >= 0.5 || a.threat_level === 'CRITICAL' || a.threat_level === 'HIGH').length}
+                            </span>
+                            <span className="metric-unit">alerts</span>
+                        </div>
+                    </div>
+
                     {/* Agent CPU Metric */}
                     <div className="metric-cell">
                         <span className="metric-label">Agent CPU</span>
@@ -122,7 +147,6 @@ export default function Dashboard() {
                                 <span className="status-dot"></span>
                                 {integrity?.intact ? 'VERIFIED' : 'TAMPERED'}
                             </span>
-                            <span className="metric-unit">({integrity?.total_records ?? 0} recs)</span>
                         </div>
                     </div>
 
@@ -170,7 +194,7 @@ export default function Dashboard() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                         <div className="confidence-selector">
-                            {['ALL', 'HIGH', 'MEDIUM', 'LOW'].map(lvl => (
+                            {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(lvl => (
                                 <button
                                     key={lvl}
                                     className={`conf-opt ${confidenceFilter === lvl ? 'active' : ''}`}
@@ -212,9 +236,14 @@ export default function Dashboard() {
                                                 onClick={() => setSelectedActivity(act)}
                                             >
                                                 <div className="row-top">
-                                                    <span className={`conf-pill ${getConfidenceClass(act.confidence_level)}`}>
-                                                        {act.confidence_level} ({act.confidence_score.toFixed(2)})
-                                                    </span>
+                                                    <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                                                        <span className={`threat-pill ${getConfidenceClass(act.threat_level || act.confidence_level)}`}>
+                                                            {act.threat_level || act.confidence_level}
+                                                        </span>
+                                                        <span className="ml-pill">
+                                                            ML: {act.ml_anomaly_score !== null && act.ml_anomaly_score !== undefined ? act.ml_anomaly_score.toFixed(2) : '--'}
+                                                        </span>
+                                                    </div>
                                                     <span className="row-rule">{act.rule_name}</span>
                                                 </div>
 
@@ -223,7 +252,7 @@ export default function Dashboard() {
 
                                                 <div className="row-footer">
                                                     <span>{new Date(act.timestamp_start).toLocaleTimeString()}</span>
-                                                    <span>{act.evidence_event_ids?.length || 0} evidence links</span>
+                                                    <span>Rule: {act.confidence_score.toFixed(2)} &bull; {act.evidence_event_ids?.length || 0} links</span>
                                                 </div>
                                             </div>
                                         );

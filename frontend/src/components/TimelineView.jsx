@@ -102,10 +102,17 @@ export default function TimelineView({ onSelectActivity }) {
                                         <span className={`entry-source-pill ${isAct ? 'act' : item.source}`}>
                                             {isAct ? 'CORRELATED ACTIVITY' : item.source?.toUpperCase()}
                                         </span>
-                                        {isAct && item.confidence_level && (
-                                            <span className={`conf-pill ${confClass}`}>
-                                                {item.confidence_level}
-                                            </span>
+                                        {isAct && (
+                                            <>
+                                                <span className={`threat-pill ${confClass}`}>
+                                                    {item.threat_level || item.confidence_level}
+                                                </span>
+                                                {item.ml_anomaly_score !== null && item.ml_anomaly_score !== undefined && (
+                                                    <span className="ml-pill">
+                                                        ML: {Number(item.ml_anomaly_score).toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </>
                                         )}
                                         <strong className="entry-title-text">{item.title}</strong>
                                     </div>

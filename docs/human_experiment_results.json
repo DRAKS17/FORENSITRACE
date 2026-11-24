@@ -1,0 +1,130 @@
+{
+  "evaluation_timestamp": "2026-11-24T13:45:18.639534+00:00",
+  "protocol": "Counterbalanced Matched Scenarios (A vs A')",
+  "questions": [
+    "Q1: Which removable USB device was attached (Vendor / Volume / Letter)?",
+    "Q2: Which executable file was staged to the removable volume?",
+    "Q3: Which user account context was observed executing the staged process?",
+    "Q4: Did the threat actor attempt anti-forensic evidence destruction (Audit Log Cleared)?",
+    "Q5: What was the exact chronological sequence of the attack steps?"
+  ],
+  "participant_count": 10,
+  "metrics_summary": {
+    "event_viewer": {
+      "mean_time_minutes": 18.53,
+      "mean_score_out_of_5": 3.2,
+      "accuracy_percent": 64.0
+    },
+    "forensitrace": {
+      "mean_time_minutes": 3.91,
+      "mean_score_out_of_5": 4.9,
+      "accuracy_percent": 98.0
+    },
+    "performance_gain": {
+      "time_reduction_percent": 78.9,
+      "accuracy_increase_percent": 34.0
+    }
+  },
+  "raw_trials": [
+    {
+      "id": "P01",
+      "first_tool": "Event Viewer",
+      "scen_1": "A",
+      "time_ev_min": 18.5,
+      "score_ev": 3,
+      "scen_2": "A'",
+      "time_ft_min": 4.2,
+      "score_ft": 5
+    },
+    {
+      "id": "P02",
+      "first_tool": "ForensiTrace",
+      "scen_1": "A'",
+      "time_ev_min": 16.0,
+      "score_ev": 4,
+      "scen_2": "A",
+      "time_ft_min": 3.8,
+      "score_ft": 5
+    },
+    {
+      "id": "P03",
+      "first_tool": "Event Viewer",
+      "scen_1": "A'",
+      "time_ev_min": 21.0,
+      "score_ev": 3,
+      "scen_2": "A",
+      "time_ft_min": 4.5,
+      "score_ft": 5
+    },
+    {
+      "id": "P04",
+      "first_tool": "ForensiTrace",
+      "scen_1": "A",
+      "time_ev_min": 17.2,
+      "score_ev": 3,
+      "scen_2": "A'",
+      "time_ft_min": 3.5,
+      "score_ft": 5
+    },
+    {
+      "id": "P05",
+      "first_tool": "Event Viewer",
+      "scen_1": "A",
+      "time_ev_min": 19.8,
+      "score_ev": 2,
+      "scen_2": "A'",
+      "time_ft_min": 4.0,
+      "score_ft": 4
+    },
+    {
+      "id": "P06",
+      "first_tool": "ForensiTrace",
+      "scen_1": "A'",
+      "time_ev_min": 15.5,
+      "score_ev": 4,
+      "scen_2": "A",
+      "time_ft_min": 3.2,
+      "score_ft": 5
+    },
+    {
+      "id": "P07",
+      "first_tool": "Event Viewer",
+      "scen_1": "A'",
+      "time_ev_min": 22.4,
+      "score_ev": 3,
+      "scen_2": "A",
+      "time_ft_min": 4.8,
+      "score_ft": 5
+    },
+    {
+      "id": "P08",
+      "first_tool": "ForensiTrace",
+      "scen_1": "A",
+      "time_ev_min": 18.0,
+      "score_ev": 4,
+      "scen_2": "A'",
+      "time_ft_min": 3.6,
+      "score_ft": 5
+    },
+    {
+      "id": "P09",
+      "first_tool": "Event Viewer",
+      "scen_1": "A",
+      "time_ev_min": 20.1,
+      "score_ev": 3,
+      "scen_2": "A'",
+      "time_ft_min": 4.1,
+      "score_ft": 5
+    },
+    {
+      "id": "P10",
+      "first_tool": "ForensiTrace",
+      "scen_1": "A'",
+      "time_ev_min": 16.8,
+      "score_ev": 3,
+      "scen_2": "A",
+      "time_ft_min": 3.4,
+      "score_ft": 5
+    }
+  ]
+}
