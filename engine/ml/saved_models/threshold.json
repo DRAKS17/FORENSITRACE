@@ -1,22 +1,30 @@
 {
-  "model_version": "v1.0-hybrid",
-  "trained_at": "2026-11-24T13:34:03.231403+00:00",
-  "input_dim": 13,
-  "hidden_dim": 32,
+  "model_version": "v2.0-live-trained",
+  "trained_at": "2026-11-27T12:16:47.495278+00:00",
+  "trained_on": "real_laptop_endpoint_telemetry",
+  "training_events_total": 28147,
+  "training_windows_total": 28129,
+  "validation_events_total": 9273,
+  "validation_windows_total": 9264,
+  "test_events_total": 2307,
+  "test_windows_total": 2280,
+  "feature_dim": 13,
   "window_size": 10,
-  "threshold": 0.4216700494289398,
-  "val_mean_mse": 0.4216700494289398,
-  "val_max_mse": 0.4216700494289398,
-  "canonical_actions": [
-    "DEVICE_ARRIVED",
-    "DEVICE_REMOVED",
-    "FILE_CREATED",
-    "FILE_MODIFIED",
-    "FILE_DELETED",
-    "FILE_MOVED",
-    "PROCESS_STARTED",
-    "LOG_CLEARED",
-    "USER_LOGON",
-    "HEARTBEAT"
-  ]
+  "hidden_dim": 32,
+  "reconstruction_loss_mean": 0.003930469509214163,
+  "reconstruction_loss_std": 0.009976758621633053,
+  "anomaly_threshold_tau": 0.04686031863093376,
+  "threshold_percentile": 99.0,
+  "normalization_formula": "S_ml = min(1.0, 0.5 * (error / tau)) if error <= tau else min(1.0, 0.5 + 0.5 * ((error - tau) / tau))",
+  "test_benign_fpr": 0.03333333333333333,
+  "attack_detection": {
+    "Scenario A (USB Attack)": {
+      "reconstruction_error": 0.1841133087873459,
+      "flagged_anomalous": true
+    },
+    "Scenario B (Bulk Exfil)": {
+      "reconstruction_error": 0.12419948726892471,
+      "flagged_anomalous": true
+    }
+  }
 }
